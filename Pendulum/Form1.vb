@@ -1,6 +1,6 @@
 ﻿Imports Microsoft.VisualBasic.PowerPacks
 Public Class Form1
-    Dim armLenght, angle, mass, firstAngle, bobX, bobY, aVel, aAcc, cyclicFrequency, oscillationPeriod, dampingFactor, msSW As Double
+    Dim armLenght, angle, mass, firstAngle, bobX, bobY, aVel, aAcc, cyclicFrequency, oscillationPeriod, dampingFactor, fullEnergyAtStart, fullEnergy, msSW As Double
     Dim T As Double
 
     Dim sSW, mSW, hSW As Integer
@@ -11,7 +11,7 @@ Public Class Form1
         cyclicFrequencyLbl.Text = "0"
         dampingFactorLbl.Text = "0"
         fullEnergyAtStartLbl.Text = "0"
-        fullEnergyLbl.Text = "0"
+        curFullEnergyLbl.Text = "0"
         kineticEnergyLbl.Text = "0"
         potentialEnergyLbl.Text = "0"
         oscillationPeriodPrewLbl.Text = "0"
@@ -24,7 +24,8 @@ Public Class Form1
     End Sub
 
     'Const dt As Double = 0.0167
-    Const dt As Double = 0.002
+    'Const dt As Double = 0.02
+   Const dt As Double = 0.002
     'Const dt As Double = 0.03
     Const angleСorrection As Double = 90
     Const angleDegrToRad As Double = (Math.PI / 180)
@@ -39,11 +40,11 @@ Public Class Form1
         If resistanceCoeffValue.Text <> "" Then
             dampingFactor = resistanceCoeffValue.Text / (2 * mass)
             dampingFactorLbl.Text = dampingFactor
-            cyclicFrequency = Math.Sqrt(9.8 / (armLenghtLbl.Text / 100))
+            cyclicFrequency = Math.Sqrt(9.8 / (armLenght / 100))
             cyclicFrequency = Math.Sqrt(cyclicFrequency ^ 2 - dampingFactor ^ 2)
             oscillationPeriod = (2 * Math.PI) / cyclicFrequency
         Else
-            cyclicFrequency = Math.Sqrt(9.8 / (armLenghtLbl.Text / 100))
+            cyclicFrequency = Math.Sqrt(9.8 / (armLenghtValue.Text / 100))
             oscillationPeriod = (2 * Math.PI) / cyclicFrequency
         End If
         cyclicFrequencyLbl.Text = cyclicFrequency
@@ -54,6 +55,9 @@ Public Class Form1
         bobY = (arm.StartPoint.Y + armLenght * Math.Cos(angle * angleDegrToRad)) - (bob.Size.Width / 2)
         bob.Location = New Point(bobX, bobY)
         arm.EndPoint = New Point(bobX + (bob.Size.Width / 2), bobY + (bob.Size.Width / 2))
+
+        fullEnergyAtStart = mass * 9.81 * (armLenght / 100) * (1 - Math.Cos(angle * angleDegrToRad))
+        fullEnergyAtStartLbl.Text = fullEnergyAtStart
     End Sub
 
     Private Sub periodTmr_Tick(sender As Object, e As EventArgs) Handles periodTmr.Tick
@@ -106,6 +110,35 @@ Public Class Form1
             CType(sender, OvalShape).Top = Control.MousePosition.Y - Me.Top - (CType(sender, OvalShape).Height + 1.5)
             curLcn = bob.Location
             arm.EndPoint = New Point(curLcn.X + (bob.Size.Width / 2), curLcn.Y + (bob.Size.Width / 2))
+
+
+            Call setGetCurDataPlaceBtn_Click(sender, e)
+
+
+            'armLenghtLbl.Text = Math.Sqrt((arm.EndPoint.X - arm.StartPoint.X) ^ 2 + (arm.EndPoint.Y - arm.StartPoint.Y) ^ 2)
+            'angleLbl.Text = (Math.Asin((bob.Location.X + (bob.Size.Width / 2) - arm.StartPoint.X) / armLenghtLbl.Text)) * angleRadToDegr
+
+            'angle = angleLbl.Text
+            'armLenght = armLenghtLbl.Text
+            'angleValue.Text = angleLbl.Text
+            'armLenghtValue.Text = armLenghtLbl.Text
+
+            'If resistanceCoeffValue.Text <> "" Then
+            '    dampingFactor = resistanceCoeffValue.Text / (2 * mass)
+            '    dampingFactorLbl.Text = dampingFactor
+            '    cyclicFrequency = Math.Sqrt(9.81 / (armLenghtLbl.Text / 100))
+            '    cyclicFrequency = Math.Sqrt(cyclicFrequency ^ 2 - dampingFactor ^ 2)
+            '    oscillationPeriod = (2 * Math.PI) / cyclicFrequency
+            'Else
+            '    cyclicFrequency = Math.Sqrt(9.81 / (armLenghtLbl.Text / 100))
+            '    oscillationPeriod = (2 * Math.PI) / cyclicFrequency
+            'End If
+            'cyclicFrequencyLbl.Text = cyclicFrequency
+            'oscillationPeriodLbl.Text = oscillationPeriod
+
+            'fullEnergyAtStart = mass * 9.81 * (armLenght / 100) * (1 - Math.Cos(angle * angleDegrToRad))
+            'fullEnergyAtStartLbl.Text = fullEnergyAtStart
+
         End If
     End Sub
 
@@ -115,6 +148,19 @@ Public Class Form1
     End Sub
 
     Private Sub setGetCurDataPlaceBtn_Click(sender As Object, e As EventArgs) Handles setGetCurDataPlaceBtn.Click
+        Dim resistanceCoeff As Double
+        aVel = 0
+        aAcc = 0
+        mass = 1
+        hSW = 0
+        mSW = 0
+        sSW = 0
+        msSW = 0
+        hhSW = "00"
+        mmSW = "00"
+        ssSW = "00"
+        mmsSW = "00"
+
         armLenghtLbl.Text = Math.Sqrt((arm.EndPoint.X - arm.StartPoint.X) ^ 2 + (arm.EndPoint.Y - arm.StartPoint.Y) ^ 2)
         angleLbl.Text = (Math.Asin((bob.Location.X + (bob.Size.Width / 2) - arm.StartPoint.X) / armLenghtLbl.Text)) * angleRadToDegr
 
@@ -124,10 +170,12 @@ Public Class Form1
         armLenghtValue.Text = armLenghtLbl.Text
 
         If resistanceCoeffValue.Text <> "" Then
-            dampingFactor = resistanceCoeffValue.Text / (2 * mass)
+            resistanceCoeff = resistanceCoeffValue.Text
+            resistanceCoeff = resistanceCoeff / 1500
+            dampingFactor = resistanceCoeff / (2 * mass)
             dampingFactorLbl.Text = dampingFactor
-            cyclicFrequency = Math.Sqrt(9.8 / (armLenghtLbl.Text / 100))
-            cyclicFrequency = Math.Sqrt(cyclicFrequency ^ 2 - dampingFactor ^ 2)
+            'cyclicFrequency = Math.Sqrt(9.8 / (armLenghtLbl.Text / 100))
+            cyclicFrequency = Math.Sqrt((Math.Sqrt(9.8 / (armLenghtLbl.Text / 100))) ^ 2 - dampingFactor ^ 2)
             oscillationPeriod = (2 * Math.PI) / cyclicFrequency
         Else
             cyclicFrequency = Math.Sqrt(9.8 / (armLenghtLbl.Text / 100))
@@ -142,27 +190,33 @@ Public Class Form1
         bob.Location = New Point(bobX, bobY)
         arm.EndPoint = New Point(bobX + (bob.Size.Width / 2), bobY + (bob.Size.Width / 2))
 
+        fullEnergyAtStart = mass * 9.81 * (armLenght / 100) * (1 - Math.Cos(angle * angleDegrToRad))
+        fullEnergyAtStartLbl.Text = fullEnergyAtStart
+
     End Sub
 
     Private Sub startBtn_Click(sender As Object, e As EventArgs) Handles startBtn.Click
         If startBtn.Text = "Start" Then
             moveTmr.Start()
             periodTmr.Start()
-            aVel = 0
-            aAcc = 0
-            mass = 1
-            hSW = 0
-            mSW = 0
-            sSW = 0
-            msSW = 0
-            hhSW = "00"
-            mmSW = "00"
-            ssSW = "00"
-            mmsSW = "00"
+            'aVel = 0
+            'aAcc = 0
+            'mass = 1
+            'hSW = 0
+            'mSW = 0
+            'sSW = 0
+            'msSW = 0
+            'hhSW = "00"
+            'mmSW = "00"
+            'ssSW = "00"
+            'mmsSW = "00"
 
-            fullEnergyAtStartLbl.Text = (mass * (g / (armLenght / 100)) * (angle * angleRadToDegr * (armLenght / 100)) ^ 2) / 2 * (armLenght / 100)
-            firstAngle = (Math.Asin((bob.Location.X + (bob.Size.Width / 2) - arm.StartPoint.X) / (armLenghtLbl.Text))) * angleRadToDegr
+            'fullEnergyAtStartLbl.Text = (mass * (g / (armLenght / 100)) * (angle * angleRadToDegr * (armLenght / 100)) ^ 2) / 2 * (armLenght / 100)
+            fullEnergyAtStart = mass * 9.81 * (armLenght / 100) * (1 - Math.Cos(angle * angleDegrToRad))
+            fullEnergyAtStartLbl.Text = fullEnergyAtStart
+            firstAngle = (Math.Asin((bob.Location.X + (bob.Size.Width / 2) - arm.StartPoint.X) / (armLenght))) * angleRadToDegr
             startBtn.Text = "Stop"
+            fullEnergy = fullEnergyAtStart
         Else
             moveTmr.Stop()
             periodTmr.Stop()
@@ -182,32 +236,62 @@ Public Class Form1
     End Sub
 
     Private Sub moveTmr_Tick(sender As Object, e As EventArgs) Handles moveTmr.Tick
-        Dim kineticEnergy, potentialEnergy, fullEnergy As Double
+        Dim kineticEnergy, potentialEnergy, kineticEnergyEx, potentialEnergyEx, resistanceCoeff, velEnVal As Double
+        If resistanceCoeffValue.Text = "" Then
+            resistanceCoeff = 0
+        Else
+            resistanceCoeff = resistanceCoeffValue.Text
+            resistanceCoeff = resistanceCoeff / 1500
+        End If
 
-        ''aVel = Math.Sqrt(g / armLenght) * (angle * armLenght)
-        'aAcc = -((g / armLenght) * (angle * armLenght))
-        'aVel += aAcc
-        'angle += aVel / (Math.Sqrt(g / armLenght) * armLenght)
-        ''aAcc = -(g / armLenght) * Math.Sin(angle * angleDegrToRad)
-        ''aVel += aAcc * dt
-        ''angle += aVel * dt
-        ''T += dt
-        ''perTimeLbl.Text = T
 
         aAcc = -((g / armLenght) * (angle * armLenght))
         aVel += aAcc * dt
-        If resistanceCoeffValue.Text <> "" Then
-            aVel *= 1 - resistanceCoeffValue.Text
-        End If
-        curVelLbl.Text = aVel
+        aVel *= 1 - resistanceCoeff
+        curVelLbl.Text = (aVel / 12.84034) * 1.01261
         angle += (aVel / (Math.Sqrt(g / armLenght) * armLenght))
+        T += dt
+        Label13.Text = T
 
-        kineticEnergy = (mass * aVel ^ 2) / 2
-        kineticEnergyLbl.Text = kineticEnergy
-        potentialEnergy = (mass * (g / (armLenght / 100)) * (angle * angleRadToDegr * (armLenght / 100)) ^ 2) / 2 * (armLenght / 100)
+        'aAcc = -((g / armLenght) * (angle * armLenght))
+        'aVel += aAcc * dt
+        'If resistanceCoeffValue.Text <> "" Then
+        '    aVel *= 1 - resistanceCoeffValue.Text
+        'End If
+        'curVelLbl.Text = (aVel / 12.84034) * 1.01261
+        'angle += (aVel / (Math.Sqrt(g / armLenght) * armLenght))
+        'T += dt
+        'Label13.Text = T
+
+
+        potentialEnergy = mass * 9.81 * (armLenght / 100) * (1 - Math.Cos(angle * angleDegrToRad))
         potentialEnergyLbl.Text = potentialEnergy
-        fullEnergy = kineticEnergy + potentialEnergy
-        fullEnergyLbl.Text = fullEnergy
+        'kineticEnergy = fullEnergy - potentialEnergy
+        kineticEnergy = (mass * (((aVel / 12.84034) * 1.01261) * ((aVel / 12.84034) * 1.01261))) / 2
+        kineticEnergyLbl.Text = kineticEnergy
+        velEnVal = Math.Sqrt((kineticEnergy * 2) / (mass))
+        velEnValue.Text = velEnVal
+        curFullEnergyLbl.Text = potentialEnergy + kineticEnergy
+        fullEnergy = potentialEnergy + kineticEnergy
+        If Math.Round(fullEnergy, 4) = 0 Then
+            moveTmr.Stop()
+            periodTmr.Stop()
+            moveTmr.Stop()
+            periodTmr.Stop()
+            hSW = 0
+            mSW = 0
+            sSW = 0
+            msSW = 0
+            perTimeLbl.Text = hhSW & ":" & mmSW & ":" & ssSW & ":" & mmsSW
+            startBtn.Text = "Start"
+        End If
+
+        ' kineticEnergyEx = (mass * velEnValue.Text ^ 2) / 2
+        'kineticEnergyLbl.Text = kineticEnergy
+        'potentialEnergyEx = (mass * (Math.Sqrt(g / (armLenght / 100)) ^ 2) * (angle * angleRadToDegr * (armLenght / 100)) ^ 2) / (2 * (armLenght / 100))
+        'potentialEnergyLbl.Text = potentialEnergy
+        'curFullEnergyLbl.Text = kineticEnergyEx + potentialEnergyEx
+        'fullEnergyLbl.Text = fullEnergy
 
         bobX = (arm.StartPoint.X + armLenght * Math.Sin(angle * angleDegrToRad)) - (bob.Size.Width / 2)
         bobY = (arm.StartPoint.Y + armLenght * Math.Cos(angle * angleDegrToRad)) - (bob.Size.Width / 2)
